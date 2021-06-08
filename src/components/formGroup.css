@@ -1,8 +1,14 @@
 .mainForm{
     width: 20%;
     margin: auto;
-    margin-top: 10%;
-    padding: 70px;
+    margin-top: 2%;
+    padding: 40px;
     background-color: aliceblue;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.mainIcon{
+    margin-bottom: 50px;
+    color :rgba(95, 89, 89, 0.19);
+    transform: scale(3.8);
 }
