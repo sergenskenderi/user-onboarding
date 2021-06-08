@@ -2,11 +2,12 @@ import React, { useState , useEffect } from "react";
 import {Button, Form} from "react-bootstrap";
 import "./formGroup.css";
 import * as yup from "yup";
+import axios from "axios";
 
 const formSchema = yup.object().shape({
     name : yup.string().required("Full Name is required!"),
     email: yup.string().email("Please enter a valid email").required("Email is required"),
-    password : yup.string().min("Password should contain more than 7 characters").required("Password is required"),
+    password : yup.string().min(8).required("Password is required"),
     terms: yup.boolean().oneOf([true], "Please agree to terms of use"),
 });
 
@@ -25,6 +26,8 @@ function FormGroup(){
         terms : ""
     })
 
+    const [users , setUsers] = useState([]);
+
     const [disabled , setDisabled ] = useState(true);
 
     useEffect( () => {
@@ -34,22 +37,35 @@ function FormGroup(){
     },[formState]);
 
     const validateChange = (e) => {
-        yup
-          .reach(formSchema, e.target.name)
-          .validate(e.target.value)
-          .then((valid) => {
+        if(e.target.type === "checkbox"){
+        yup.reach(formSchema , e.target.name) 
+        .validate(e.target.checked)
+        .then( (valid) => {
             setErrors({
-              ...errors,
-              [e.target.name]: ""
+                ...errors, [e.target.name] : ""
             });
-          })
-          .catch((err) => {
+        })
+        .catch( (err) => {
             setErrors({
-              ...errors,
-              [e.target.name]: err.errors[0]
+                ...errors, [e.target.name] : err.errors[0]
             });
-          });
-      };
+        });
+        }else{
+        yup.reach(formSchema , e.target.name) 
+        .validate(e.target.value)
+        .then( (valid) => {
+            setErrors({
+                ...errors, [e.target.name] : ""
+            });
+        })
+        .catch( (err) => {
+            setErrors({
+                ...errors, [e.target.name] : err.errors[0]
+            });
+        });
+        }
+    }
+
 
     const fieldChange = (e) =>{
         e.persist();
@@ -60,9 +76,29 @@ function FormGroup(){
         setFormState(newFormData);
     }
 
+
+    const formSubmit = (e) => {
+        e.preventDefault();
+        axios.post("https://reqres.in/api/users", formState)
+        .then( (response) => {
+            console.log("succes" , response.data);
+            setUsers(
+                [...users ,response.data] 
+            );
+            setFormState({
+                name : "",
+                email : "",
+                password : "",
+                terms : false
+            });
+        }).catch( (error) => {
+            console.log(error.res);
+        })
+    }
+
     return(
         <div className="mainForm">
-        <Form>
+        <Form onSubmit={formSubmit} >
         <Form.Group className="mb-3" controlId="formBasicName">
             <Form.Label>Name</Form.Label>
             <Form.Control type="text" name="name" placeholder="Enter Full Name" value={formState.name} 
@@ -101,6 +137,17 @@ function FormGroup(){
         <Button variant="primary" type="submit" disabled={disabled}>
             Submit
         </Button>
+        {users.map( user => {
+        return (
+        <React.Fragment>
+        <Form.Group className="mb-3" controlId="formBasicResponse">
+                <Form.Text className="text-muted" style={{marginTop: '3px'}}>
+                {JSON.stringify(user, null, 5)}
+                </Form.Text>
+        </Form.Group>
+        </React.Fragment>
+        )
+        })}
         </Form>
         </div>
     );
